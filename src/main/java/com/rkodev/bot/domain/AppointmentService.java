@@ -4,9 +4,6 @@ import com.rkodev.bot.model.Appointment;
 import com.rkodev.bot.model.ProcessResult;
 import org.springframework.lang.Nullable;
 
-import java.util.Date;
-import java.util.List;
-
 public interface AppointmentService {
 
     /***
@@ -14,7 +11,7 @@ public interface AppointmentService {
      * @param appointment
      * @return
      */
-    ProcessResult<Appointment> bookAppointment(@Nullable Appointment appointment);
+    ProcessResult<Appointment> bookAppointment(@Nullable Appointment appointment, String response);
 
     /***
      * returns by number
@@ -29,22 +26,5 @@ public interface AppointmentService {
      * @return
      */
     ProcessResult<Appointment> cancelAppointment(String appointmentNumber);
-
-    /**
-     * updates the appointment and returns the details
-     *
-     * @param appointment
-     * @return
-     */
-    ProcessResult<Appointment> postpone(Appointment appointment);
-
-    /**
-     * Returns a list of dates that have an appointment slot
-     * next to the one requested by the user
-     *
-     * @param currentSlot
-     * @return
-     */
-    List<Date> getNextAvailableSlots(String currentSlot);
 
 }

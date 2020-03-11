@@ -1,15 +1,12 @@
 package com.rkodev.bot.model;
 
-import java.util.Date;
-
 public class Appointment {
 
     private String number;
     private String client;
     private String phoneNumber;
-    private Date date;
-    private String time;
-    private String status;
+    private String day;
+    private ExpectedResponse expectedResponse = ExpectedResponse.SELECT_SERVICE;
 
     public String getNumber() {
         return number;
@@ -35,27 +32,39 @@ public class Appointment {
         this.phoneNumber = phoneNumber;
     }
 
-    public Date getDate() {
-        return date;
+    public String getDay() {
+        return day;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setDay(String day) {
+        this.day = day;
     }
 
-    public String getTime() {
-        return time;
+    public ExpectedResponse getExpectedResponse() {
+        return expectedResponse;
     }
 
-    public void setTime(String time) {
-        this.time = time;
+    public void setExpectedResponse(ExpectedResponse expectedResponse) {
+        this.expectedResponse = expectedResponse;
     }
 
-    public String getStatus() {
-        return status;
+    public void reset() {
+        number = null;
+        client = null;
+        phoneNumber = null;
+        day = null;
+        expectedResponse = ExpectedResponse.SELECT_SERVICE;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public String getSummary() {
+        return "Number: " + getNullOrEmpty(number) + ", \n" +
+                "Name: " + getNullOrEmpty(client) + ", \n" +
+                "Day: " + getNullOrEmpty(day) + ", \n" +
+                "Phone Number: " + getNullOrEmpty(phoneNumber) + ", \n";
+    }
+
+    private String getNullOrEmpty(String value) {
+        return value == null ? "" : value;
+
     }
 }

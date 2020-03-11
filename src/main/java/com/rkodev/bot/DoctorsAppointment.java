@@ -4,8 +4,10 @@ import com.codepoetics.protonpack.collectors.CompletableFutures;
 import com.microsoft.bot.builder.*;
 import com.microsoft.bot.schema.Activity;
 import com.microsoft.bot.schema.ChannelAccount;
+import com.rkodev.bot.appstate.*;
 import com.rkodev.bot.domain.AppointmentService;
 import com.rkodev.bot.model.Appointment;
+import com.rkodev.bot.utils.MessageUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,8 +22,6 @@ import java.util.concurrent.CompletableFuture;
  */
 @Component
 public class DoctorsAppointment extends ActivityHandler {
-
-    private static final String WELCOME_MESSAGE = "Welcome to Pacifist Appointment Bot, how may I help you today?";
 
     private ConversationState conversationState;
     private UserState userState;
@@ -58,8 +58,7 @@ public class DoctorsAppointment extends ActivityHandler {
     protected CompletableFuture<Void> onMembersAdded(List<ChannelAccount> membersAdded, TurnContext turnContext) {
         return membersAdded.stream()
                 .filter(member -> !StringUtils.equals(member.getId(), turnContext.getActivity().getRecipient().getId()))
-                .map(channel -> turnContext.sendActivity(
-                        MessageFactory.text(WELCOME_MESSAGE)))
+                .map(channel -> turnContext.sendActivity(MessageUtils.getIntroMessage("Welcome to Pacifist Appointment Bot, What can I help you with today?")))
                 .collect(CompletableFutures.toFutureList())
                 .thenApply(resourceResponses -> null);
     }
@@ -67,13 +66,44 @@ public class DoctorsAppointment extends ActivityHandler {
     @Override
     protected CompletableFuture<Void> onMessageActivity(TurnContext turnContext) {
 
+        // appointment state
+        StatePropertyAccessor<Appointment> dataAccessor = conversationState.createProperty("data");
+        CompletableFuture<Appointment> dataFuture = dataAccessor.get(turnContext, Appointment::new);
+
         String turnText = turnContext.getActivity().getText();
-        return turnContext
-                .sendActivity(processAppointment(null, turnText))
-                .thenApply(sendResult -> null);
+
+        return dataFuture.thenApply(thisAppointment ->
+                turnContext.sendActivity(processAppointment(thisAppointment, turnText)))
+                .thenApply(resourceResponse -> null);
     }
 
     private Activity processAppointment(Appointment appointment, String turnText) {
-        return MessageFactory.text("Echo: " + turnText);
+        AppState appState = null;
+        switch (appointment.getExpectedResponse()) {
+            case SELECT_SERVICE:
+                appState = new SelectServiceState();
+                break;
+            case BOOKING_SERVICE_NAME:
+            case BOOKING_SERVICE_PHONE:
+            case BOOKING_SERVICE_DAY:
+                appState = new BookingState();
+                break;
+            case CHECK_SERVICE_NUMBER:
+                appState = new CheckState();
+                break;
+            case CANCEL_SERVICE_NUMBER:
+                appState = new CancelingState();
+                break;
+            default:
+                break;
+        }
+
+        if (appState != null)
+            return appState.handleRequest(appointmentService, appointment, turnText);
+
+
+        return MessageUtils.getIntroMessage("Sorry, I don't understand that request please choose from below");
     }
+
+
 }

@@ -9,7 +9,10 @@ public class ProcessResult<T> {
     private T payLoad;
     private String responseText;
     private ResultState result;
-    private Request request;
+
+    public ProcessResult(T payLoad) {
+        this.payLoad = payLoad;
+    }
 
     public T getPayLoad() {
         return payLoad;
@@ -33,13 +36,5 @@ public class ProcessResult<T> {
 
     public void setResult(ResultState result) {
         this.result = result;
-    }
-
-    public Request getRequest() {
-        return request;
-    }
-
-    public void setRequest(Request request) {
-        this.request = request;
     }
 }
